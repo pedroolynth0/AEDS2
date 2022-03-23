@@ -9,7 +9,7 @@ class Filme {
     private String genero;
     private String idioma;
     private String situacao;
-    private String orcamento;
+    private float orcamento;
     private String[] palavraChave;
 
     // gets
@@ -41,7 +41,7 @@ class Filme {
         return situacao;
     }
 
-    public String getOrcamento() {
+    public float getOrcamento() {
         return orcamento;
     }
 
@@ -78,7 +78,7 @@ class Filme {
         this.situacao = situacao;
     }
 
-    public void setOrcamento(String orcamento) {
+    public void setOrcamento(Float orcamento) {
         this.orcamento = orcamento;
     }
 
