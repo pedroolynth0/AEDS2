@@ -58,6 +58,7 @@ public class Arq
    public static String openReadClose(String nomeArq){
       openRead(nomeArq);
       String resp = readAll();
+
       close();
       return resp;
    }
