@@ -1,10 +1,12 @@
 
-//import java.util.ArrayList;
+import java.util.ArrayList;
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
 
 class Filme {
+
     private String nome;
     private String titulo;
     private Date data;
@@ -119,44 +121,204 @@ class Filme {
         this.palavraChave = palavraChave;
     }
 
-    // LER - efetuar a leitura dos atributos de um registro (arquivos html)
-    public static void lerArquivo(String arquivo) throws Exception {
-        // File path is passed as parameter
-        File file = new File("D:/TECNOPLAY/OneDrive/OneDrive - sga.pucminas.br/Área de Trabalho/faculdade/tp2/AEDS2/TP2/ex1/src/tmp/filmes/" + arquivo);
-        Scanner scanner = new Scanner(file);
-        while (scanner.hasNextLine())
-            System.out.println(scanner.nextLine());
+    public void lerArquivo(String arquivo) throws Exception {
+        // File path passado como parametro
+        File file = new File(
+                "D:/TECNOPLAY/OneDrive/OneDrive - sga.pucminas.br/Área de Trabalho/faculdade/tp2/AEDS2/TP2/ex1/src/tmp/filmes/"
+                        + arquivo);
+        Scanner scanner = new Scanner(file, "ISO-8859-1");
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/mm/yyyy");
+        /*
+         * ------------NOME:------------
+         * <h2 class="6"> classe alguma coisa, n importa
+         * <a href="/movie/414906-the-batman?language=pt-BR">Batman</a>
+         * 
+         * ------------TITULO:------------
+         * <meta property="og:title" content="007: Sem Tempo para Morrer">
+         * 
+         * ------------DATA:------------
+         * <span class="release">
+         * 03/03/2022 (BR)
+         * </span>
+         * 
+         * ------------DURACAO:-----------------
+         * <span class="runtime">
+         * 2h 43m
+         * </span
+         * 
+         * ------------GENERO:------------
+         * <span class="genres">
+         * <a href="/genre/12-aventura/movie">Aventura</a>,&nbsp;<a
+         * href="/genre/28-acao/movie">Ação</a>,&nbsp;<a
+         * href="/genre/53-thriller/movie">Thriller</a>
+         * </span>
+         * 
+         * ------------IDIOMA:------------
+         * <p><strong><bdi>Idioma original</bdi></strong> Inglês</p>
+         * 
+         * ------------SITUACAO:------------
+         * <strong><bdi>Situação</bdi></strong> Lançado
+         * 
+         * ------------ORCAMENTO:------------
+         * <p><strong><bdi>Orçamento</bdi></strong> $250,000,000.00</p>
+         * 
+         * ------------PALAVRAS CHAVE:------------
+         * <h4><bdi>Palavras-chave</bdi></h4> (E UMA LISTA)
+         * 
+         */
+        while (scanner.hasNextLine()) {
+
+            String line = scanner.nextLine();
+            // DATA DE LANCAMENTO E NOME
+            if (line.contains("h2 class")) {
+                // PRIMEIRA LINHA: NOME
+                line = scanner.nextLine();
+                this.setNome(removeTag(line).trim());
+            }
+
+            else if (line.contains("span class=\"release\"")) {
+                line = scanner.nextLine();
+                line = line.trim();
+                this.setData(sdf.parse(line));
+
+            } else if (line.contains("span class=\"runtime\"")) {
+                scanner.nextLine();
+                line = scanner.nextLine();
+                line.trim();
+                String numeros = "";
+                for (int i = 0; i < line.length(); i++) {
+                    if ((line.charAt(i) >= 48) && (line.charAt(i) <= 57)) {
+                        numeros = numeros + line.charAt(i);
+                    }
+                }
+                int duracao = (((int) numeros.charAt(0) - 48) * 60 + (((int) numeros.charAt(1) - 48) * 10)
+                        + ((int) numeros.charAt(2) - 48));
+                setDuracao(duracao);
+            }
+            // GENERO
+            else if (line.contains("genres")) {
+                scanner.nextLine();
+                line = removeTag(scanner.nextLine().trim());
+                String tmp = "";
+                for (int i = 0; i < line.length(); i++) {
+                    if (line.charAt(i) != ',') {
+                        tmp = tmp + line.charAt(i);
+                    } else {
+                        while (line.charAt(i) != ';') {
+                            i++;
+                        }
+                        tmp = tmp + ", ";
+                    }
+                }
+                setGenero(tmp);
+
+            }
+            // ------------IDIOMA:------------
+            // <p><strong><bdi>Idioma original</bdi></strong> Inglês</p>
+            else if (line.contains("Idioma")) {
+                line = removeTag(line.trim());
+                line = line.replace("Idioma original ", "");
+                this.setIdioma(line);
+            }
+            // ------------SITUACAO:------------
+            // <strong><bdi>Situação</bdi></strong> Lançado
+            else if (line.contains("<strong><bdi>Situa")) {
+                line = removeTag(line.trim());
+                line = line.replace("SituaÃ§Ã£o", "");
+                this.setSituacao(situacao);
+                ;
+            }
+            // ------------PALAVRAS CHAVE:------------
+            // <h4><bdi>Palavras-chave</bdi></h4> (E UMA LISTA)
+            else if (line.contains("<h4><bdi>Palavras")) {
+                String palavras = "";
+                while (!(line.contains("</ul>"))) {
+
+                    line = scanner.nextLine();
+                    line = scanner.nextLine();
+
+                    if (line.length() == 0) {
+                        line = scanner.nextLine();
+                        line = scanner.nextLine();
+                    }
+
+                    palavras = palavras + line;
+
+                }
+
+                palavras = removeTag(palavras.trim());
+                palavras = palavras.replaceFirst("        ", "");
+                String[] parts = palavras.split("        ");
+                for (int i = 0; i < parts.length; i++) {
+                    System.out.println(parts[i]);
+                }
+                setPalavraChave(parts);
+
+                String[] retorno = getPalavraChave();
+                for (int i = 0; i < retorno.length; i++) {
+                    System.out.println(retorno[i] +   "1");
+                }
+
+
+
+            }
+
+        }
         scanner.close();
+    }
+
+    // LER - efetuar a leitura dos atributos de um registro (arquivos html)
+
+    // REMOVE TAG
+    public static String removeTag(String linha) {
+        String linhaMod = "";
+
+        for (int i = 0; i < linha.length(); i++) {
+            if (linha.charAt(i) == '<') {
+                i++;
+                while (linha.charAt(i) != '>') {
+                    i++;
+                }
+            } else {
+                linhaMod = linhaMod + linha.charAt(i);
+            }
+        }
+        return linhaMod;
     }
 
 }
 
 class Main {
+    public static boolean isFim(String s) {
+        return (s.length() == 3 && s.charAt(0) == 'F' && s.charAt(1) == 'I' && s.charAt(2) == 'M');
+    }
 
     public static void main(String[] args) throws Exception {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/mm/yyyy");
+        ArrayList<Filme> listaDeFilmes = new ArrayList<>();
 
-        String file;
-        Filme branca = new Filme();
-        branca.setNome("Branca de neve");
-        Filme velozes = new Filme();
-        velozes.setNome("Velozes e furiosos 7 ");
+        String file = MyIO.readLine();
+        while (!(isFim(file))) {
+            Filme tmp = new Filme();
+            tmp.lerArquivo(file);
 
-        do {
+            // ler stdin - novo input
 
+            listaDeFilmes.add(tmp);
             file = MyIO.readLine();
-            Filme.lerArquivo(file);
+        
+        }
 
-        } while (!(file.equals("FIM")));
+        for (int i = 0; i < listaDeFilmes.size(); i++) {
+            MyIO.print(listaDeFilmes.get(i).getNome() + ',' + listaDeFilmes.get(i).getTitulo() + ','
+                    + sdf.format(listaDeFilmes.get(i).getData())
+                    + ',' + listaDeFilmes.get(i).getDuracao() + ',' + listaDeFilmes.get(i).getGenero() + ','
+                    + listaDeFilmes.get(i).getIdioma()
+                    + ',' + listaDeFilmes.get(i).getSituacao() + ',' + listaDeFilmes.get(i).getOrcamento());
+            System.out.println(listaDeFilmes.get(i).getPalavraChave());
 
-        // ArrayList<Filme> listaDeFilmes = new ArrayList<>();
-        // listaDeFilmes.add(branca);
-        // listaDeFilmes.add(velozes);
+        }
 
-        /*
-         * for (int i = 0; i < listaDeFilmes.size(); i++) {
-         * MyIO.println(listaDeFilmes.get(i).getNome());
-         * 
-         * }
-         */
     }
+
 }

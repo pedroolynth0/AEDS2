@@ -1,5 +1,6 @@
 import java.io.*;
 import java.nio.charset.*;
+import java.util.Date;
 
 class MyIO {
 
@@ -59,10 +60,10 @@ class MyIO {
    public static void println(){
    }
 
-   public static void println(int x){
+   public static void println(Date date){
       try {
          PrintStream out = new PrintStream(System.out, true, charset);
-         out.println(x);
+         out.println(date);
       }catch(UnsupportedEncodingException e){ System.out.println("Erro: charset invalido"); }
    }
 
